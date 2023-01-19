@@ -9,3 +9,5 @@ jobs:
         run: echo "Hello World!"
       - name: Print goodbye
         run: echo "Done - bye!"
+      - name: workspace
+        run: echo "${{GITHUB_WORKSPACE}}
