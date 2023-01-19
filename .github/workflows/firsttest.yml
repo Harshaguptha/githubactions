@@ -10,4 +10,4 @@ jobs:
       - name: Print goodbye
         run: echo "Done - bye!"
       - name: workspace
-        run: echo "${{github.workspace}}
+        run: echo "${{github.workspace}}"
