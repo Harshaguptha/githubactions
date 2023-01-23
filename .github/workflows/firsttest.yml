@@ -14,3 +14,4 @@ jobs:
         run: |
           echo "${{github.workspace}}"
           wget https://github.com/open-policy-agent/gatekeeper/releases/download/v3.7.0/gator-v3.7.0-linux-amd64.tar.gz
+          tar -xvf gator-v3.7.0-linux-amd64.tar.gz
