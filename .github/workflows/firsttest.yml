@@ -6,6 +6,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+      - uses: minchao/setup-gator@v1
       - name: Print greeting
         run: echo "Hello World!"
       - name: Print goodbye
