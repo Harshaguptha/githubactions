@@ -1,0 +1,33 @@
+kind: Suite
+apiVersion: test.gatekeeper.sh/v1alpha1
+metadata:
+  name: uniqueingresshost
+tests:
+- name: ingress-checks
+  template: template.yaml
+  constraint: constraint.yaml
+  cases:
+  - name: ingress-allowed-port
+    object: samples/unique-ingress-host/ingress_allowed_port.yaml
+    assertions:
+    - violations: no
+  - name: ingress-allowed
+    object: samples/unique-ingress-host/ingress_allowed.yaml
+    assertions:
+    - violations: no
+  - name: ingress-allowed-pattern
+    object: samples/unique-ingress-host/ingress_allowed_pattern.yaml
+    assertions:
+    - violations: no
+  - name: ingress-disallowed-port
+    object: samples/unique-ingress-host/ingress_disallowed_port.yaml
+    assertions:
+    - violations: yes
+  - name: ingress-disallowed
+    object: samples/unique-ingress-host/ingress_disallowed.yaml
+    assertions:
+    - violations: yes
+  - name: ingress-disallowed-pattern
+    object: samples/unique-ingress-host/ingress_disallowed_pattern.yaml
+    assertions:
+    - violations: yes

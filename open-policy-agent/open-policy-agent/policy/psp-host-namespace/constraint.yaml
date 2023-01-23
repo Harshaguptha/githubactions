@@ -1,0 +1,41 @@
+apiVersion: constraints.gatekeeper.sh/v1beta1
+kind: K8sPSPHostNamespace
+metadata:
+  name: psp-host-namespace
+spec:
+  enforcementAction: deny
+  match:
+    excludedNamespaces:
+    - espr-prometheus-nonprod
+    - kube-system
+    - gatekeeper-system
+    - istio-system
+    - akv2k8s
+    - twistlock
+    - kubecost
+    - calico-system
+    - default
+    - kured
+    kinds:
+      - apiGroups: [""]
+        kinds: ["Pod"]
+      - apiGroups: ["apps"]
+        kinds: ["Deployment"]
+  
+---
+
+apiVersion: constraints.gatekeeper.sh/v1beta1
+kind: K8sPSPHostNamespace
+metadata:
+  name: psp-host-namespace-espr
+spec:
+  enforcementAction: dryrun
+  match:
+    namespaces:
+    - espr-prometheus-nonprod
+    kinds:
+      - apiGroups: [""]
+        kinds: ["Pod"]
+      - apiGroups: ["apps"]
+        kinds: ["Deployment"]
+

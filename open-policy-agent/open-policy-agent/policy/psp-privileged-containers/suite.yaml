@@ -1,0 +1,25 @@
+kind: Suite
+apiVersion: test.gatekeeper.sh/v1alpha1
+metadata:
+  name: privileged-containers
+tests:
+- name: privileged-containers-disallowed
+  template: template.yaml
+  constraint: constraint.yaml
+  cases:
+  - name: example-disallowed
+    object: samples/psp-privileged-container/example_disallowed.yaml
+    assertions:
+    - violations: yes
+  - name: example-allowed
+    object: samples/psp-privileged-container/example_allowed.yaml
+    assertions:
+    - violations: no
+  - name: example-disallowed
+    object: samples/psp-privileged-container/example_disallowed_deploy.yaml
+    assertions:
+    - violations: yes
+  - name: example-allowed
+    object: samples/psp-privileged-container/example_allowed_deploy.yaml
+    assertions:
+    - violations: no

@@ -1,0 +1,25 @@
+kind: Suite
+apiVersion: test.gatekeeper.sh/v1alpha1
+metadata:
+  name: host-namespaces
+tests:
+  - name: host-namespace
+    template: template.yaml
+    constraint: constraint.yaml
+    cases:
+      - name: example-allowed
+        object: samples/psp-host-namespace/example_allowed.yaml
+        assertions:
+          - violations: no
+      - name: example-disallowed
+        object: samples/psp-host-namespace/example_disallowed.yaml
+        assertions:
+          - violations: yes
+      - name: example-allowed-deploy
+        object: samples/psp-host-namespace/example_allowed_deploy.yaml
+        assertions:
+          - violations: no
+      - name: example-disallowed-deploy
+        object: samples/psp-host-namespace/example_disallowed_deploy.yaml
+        assertions:
+          - violations: yes

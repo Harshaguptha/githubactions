@@ -1,0 +1,154 @@
+
+pipeline {
+    options {
+        ansiColor('xterm')
+    }
+
+    agent {
+        label 'platform-ff'
+    }
+
+    environment {
+        // Terraform local working directory
+        COMPONENT_NAME = 'open-policy-agent/policy'
+        POLICY_DIRECTORY = "${WORKSPACE}/infrastructure/shared/${COMPONENT_NAME}"
+    }
+    stages {
+        stage('Setting up gator') {
+            steps {
+                dir (env.POLICY_DIRECTORY)
+                     {
+                    catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                        sh '''
+                      wget https://github.com/open-policy-agent/gatekeeper/releases/download/v3.7.0/gator-v3.7.0-linux-amd64.tar.gz
+                      tar -xvf gator-v3.7.0-linux-amd64.tar.gz
+                      '''}
+                     }
+            }
+        }
+
+        stage('gen-container-limits') {
+            steps {
+                dir (env.POLICY_DIRECTORY)
+                     {
+                        catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                        sh './gator test "${POLICY_DIRECTORY}/gen-container-limits/suite.yaml" '
+                        }
+                     }
+            }
+        }
+        stage('gen-replica-limits') {
+            steps {
+                dir (env.POLICY_DIRECTORY)
+                     {
+                        catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                        sh './gator test "${POLICY_DIRECTORY}/gen-replica-limits/suite.yaml" '
+                        }
+                     }
+            }
+        }
+        stage('gen-required-probes') {
+            steps {
+                dir (env.POLICY_DIRECTORY)
+                     {
+                    catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                        sh './gator test "${POLICY_DIRECTORY}/gen-required-probes/suite.yaml" '
+                    }
+                     }
+            }
+        }
+        stage('psp-block-node-port') {
+            steps {
+                dir (env.POLICY_DIRECTORY)
+                     {
+                    catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                        sh './gator test "${POLICY_DIRECTORY}/psp-block-node-port/suite.yaml" '
+                    }
+                     }
+            }
+        }
+        stage('psp-host-namespace') {
+            steps {
+                dir (env.POLICY_DIRECTORY)
+                     {
+                    catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                        sh ' ./gator test "${POLICY_DIRECTORY}/psp-host-namespace/suite.yaml" '
+                    }
+                     }
+            }
+        }
+        stage('psp-pods-allowed-user-ranges') {
+            steps {
+                dir (env.POLICY_DIRECTORY)
+                     {
+                    catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                        sh './gator test "${POLICY_DIRECTORY}/psp-pods-allowed-user-ranges/suite.yaml" '
+                    }
+                     }
+            }
+        }
+        stage('psp-privileged-containers') {
+            steps {
+                dir (env.POLICY_DIRECTORY)
+                     {
+                    catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                        sh ' ./gator test "${POLICY_DIRECTORY}/psp-privileged-containers/suite.yaml" '
+                    }
+                     }
+            }
+        }
+        stage('psp-volume-types') {
+            steps {
+                dir (env.POLICY_DIRECTORY)
+                     {
+                        catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                        sh './gator test "${POLICY_DIRECTORY}/psp-volume-types/suite.yaml" '
+                        }
+                     }
+            }
+        }
+        stage('gen-allowed-image-registry') {
+            steps {
+                dir (env.POLICY_DIRECTORY)
+                     {
+                    catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                        sh './gator test "${POLICY_DIRECTORY}/gen-allowed-image-registry/suite.yaml" '
+                    }
+                     }
+            }
+        }
+        stage('gen-required-labels') {
+            steps {
+                dir (env.POLICY_DIRECTORY)
+                     {
+                    catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                        sh './gator test "${POLICY_DIRECTORY}/gen-required-labels/suite.yaml" '
+                    }
+                     }
+            }
+        }
+      
+        stage('gen-unique-ingress-host') {
+            steps {
+                dir (env.POLICY_DIRECTORY)
+                     {
+                    catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+                        sh './gator test "${POLICY_DIRECTORY}/gen-unique-ingress-host/suite.yaml" '
+                    }
+                     }
+            }
+        }
+    }
+
+    // Post describes the steps to take when the pipeline finishes
+    post {
+        always {
+            echo 'Clearing workspace'
+            deleteDir() // Clean up the local workspace so we don't leave behind a mess, or sensitive files
+        }
+    }
+}
+
+catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
+    sh 'commands here'
+}

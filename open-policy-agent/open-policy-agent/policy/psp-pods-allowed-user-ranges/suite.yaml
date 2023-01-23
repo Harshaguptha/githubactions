@@ -1,0 +1,29 @@
+kind: Suite
+apiVersion: test.gatekeeper.sh/v1alpha1
+metadata:
+  name: users
+tests:
+- name: users-and-groups-together
+  template: template.yaml
+  constraint: constraint.yaml
+  cases:
+  - name: example-disallowed
+    object: samples/psp-pods-allowed-user-ranges/example_disallowed.yaml
+    assertions:
+    - violations: yes
+  - name: example-allowed
+    object: samples/psp-pods-allowed-user-ranges/example_allowed.yaml
+    assertions:
+    - violations: no
+  - name: deploy-example-disallowed
+    object: samples/psp-pods-allowed-user-ranges/example_disallowed_deploy.yaml
+    assertions:
+    - violations: yes
+  - name: deploy-example-allowed
+    object: samples/psp-pods-allowed-user-ranges/example_allowed_deploy.yaml
+    assertions:
+    - violations: no
+  - name: deploy-example-allowed
+    object: samples/psp-pods-allowed-user-ranges/example_allowed_deploy_2.yaml
+    assertions:
+    - violations: no

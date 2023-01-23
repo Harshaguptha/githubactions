@@ -1,0 +1,14 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: allowed-deployment
+spec:
+  selector:
+    matchLabels:
+      app: esco
+      costcenter: 0001-123
+      portfolio: ContainerPlatform
+      drcategory: dr0
+      appcode: esco
+      environment: dev
+      project: esco

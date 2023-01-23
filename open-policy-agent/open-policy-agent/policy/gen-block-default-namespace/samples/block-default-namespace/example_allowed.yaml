@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx-default-namespace-allowed
+  namespace: app
+  labels:
+    app: nginx-default-namespace
+spec:
+  containers:
+  - name: nginx
+    image: nginx

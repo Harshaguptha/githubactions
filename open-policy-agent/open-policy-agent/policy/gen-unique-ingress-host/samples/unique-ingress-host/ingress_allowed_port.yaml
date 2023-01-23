@@ -1,0 +1,15 @@
+apiVersion: networking.istio.io/v1beta1
+kind: Gateway
+metadata:
+  name: ingres-allowed-port
+  namespace: istio-system
+spec:
+  servers:
+  - hosts:
+    - esco.nonprod.westus.aks.az.albertsons.com
+    port:
+      name: http-protected-ingressgateway
+      number: 443
+      protocol: HTTP
+    tls:
+      httpsRedirect: true

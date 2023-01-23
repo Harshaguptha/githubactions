@@ -1,0 +1,9 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: disallowed-deployment
+spec:
+  selector:
+    matchLabels:
+      app: esco
+     

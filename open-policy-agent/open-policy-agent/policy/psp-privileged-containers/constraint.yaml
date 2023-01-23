@@ -1,0 +1,32 @@
+apiVersion: constraints.gatekeeper.sh/v1beta1
+kind: K8sPSPPrivilegedContainer
+metadata:
+  name: psp-privileged-container
+spec:
+  enforcementAction: deny
+  match:
+    excludedNamespaces:
+    - kube-system
+    - gatekeeper-system
+    - istio-system
+    - akv2k8s
+    - twistlock
+    - kubecost
+    - calico-system
+    - kured
+    - default
+    kinds:
+      - apiGroups: ["apps"]
+        kinds: ["Deployment"]
+      - apiGroups: [""]
+        kinds: ["Pod"]
+  parameters:
+    exemptImages:
+    - escoacrprod01.azurecr.io/esco/istio/proxyv2:*
+    - escoacrprod01.azurecr.io/esgh/summerwind/actions-runner-controller:*
+    - escoacrprod01.azurecr.io/esgh/summerwind/actions-runner:*
+    - escoacrprod01.azurecr.io/esgh/docker:dind
+    - escoacrprod01.azurecr.io/esgh/rajpalle/actions-runner:*
+
+
+    

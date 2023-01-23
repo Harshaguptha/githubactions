@@ -1,0 +1,37 @@
+apiVersion: constraints.gatekeeper.sh/v1beta1
+kind: K8sRequiredProbes
+metadata:
+  name: must-have-probes
+spec:
+  enforcementAction: deny
+  match:
+    excludedNamespaces:
+    - turbo
+    - tigera-operator
+    - espr-prometheus-nonprod
+    - appdynamics
+    - kube-system
+    - gatekeeper-system
+    - istio-system
+    - akv2k8s
+    - twistlock
+    - kubecost
+    - calico-system
+    - default
+    - kured
+    kinds:
+      - apiGroups: ["apps"]
+        kinds: ["Deployment"]
+      - apiGroups: [""]
+        kinds: ["Pod"]
+  parameters:
+    probes: ["readinessProbe", "livenessProbe"]
+    probeTypes: ["tcpSocket", "httpGet", "exec"]
+    exemptImages:
+    - escoacrprod01.azurecr.io/esco/istio/proxyv2:*
+    - escoacrprod01.azurecr.io/esgh/summerwind/actions-runner-controller:*
+    - escoacrprod01.azurecr.io/esgh/summerwind/actions-runner:*
+    - escoacrprod01.azurecr.io/esgh/rajpalle/actions-runner:*
+    - escoacrprod01.azurecr.io/essp/k8s-decoder:git-k8s
+    - escoacrprod01.azurecr.io/esgh/docker:*
+

@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: allowed-deployment
+spec:
+  selector:
+    matchLabels:
+      app: nginx
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      securityContext:
+        supplementalGroups:
+          - 1999
+        fsGroup: 1999
+      containers:
+      - name: nginx
+        image: escoacrprod01.azurecr.io/ubuntu/nginx:1.19.3
+        ports:
+        - containerPort: 80
+        securityContext:
+          runAsUser: 1999
+          runAsGroup: 1999

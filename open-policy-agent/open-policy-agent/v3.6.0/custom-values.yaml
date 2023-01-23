@@ -1,0 +1,78 @@
+replicas: 3
+auditInterval: 3600  #86400                                                     #ABS Custom Default 60 sec #auditInterval=0 to disable
+auditMatchKindOnly: false
+constraintViolationsLimit: 1000                                                 #ABS Custom Default 20
+auditFromCache: false
+disableValidatingWebhook: $DISABLE_VALIDATING_WEBHOOK                           #ABS Custom Default false
+validatingWebhookTimeoutSeconds: 3                                              
+validatingWebhookFailurePolicy: Ignore
+validatingWebhookCheckIgnoreFailurePolicy: Fail
+enableDeleteOperations: false
+experimentalEnableMutation: false                                               #ABS Custom Default false
+auditChunkSize: 0
+logLevel: INFO
+logDenies: true                                                                 #ABS Custom Default false
+emitAdmissionEvents: false
+emitAuditEvents: false
+resourceQuota: true
+postInstall:
+  labelNamespace:
+    enabled: true
+    image:
+      repository: escoacrprod01.azurecr.io/esco/line/kubectl-kustomize          #ABS Custom Default line/kubectl-kustomize
+      tag: 1.20.4-4.0.5
+      pullPolicy: IfNotPresent
+      pullSecrets: []
+image:
+  repository: escoacrprod01.azurecr.io/esco/openpolicyagent/gatekeeper          #ABS Custom Default openpolicyagent/gatekeeper
+  release: $OPA_VERSION                                                         #ABS Custom Default v3.6.0-beta.3
+  pullPolicy: IfNotPresent
+  pullSecrets: []
+podAnnotations:
+  { container.seccomp.security.alpha.kubernetes.io/manager: runtime/default }
+podLabels: {}
+podCountLimit: 100
+secretAnnotations: {}
+controllerManager:
+  exemptNamespaces: []
+  hostNetwork: false
+  priorityClassName: system-cluster-critical
+  affinity:
+    podAntiAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+        - podAffinityTerm:
+            labelSelector:
+              matchExpressions:
+                - key: gatekeeper.sh/operation
+                  operator: In
+                  values:
+                    - webhook
+            topologyKey: kubernetes.io/hostname
+          weight: 100
+  tolerations: []
+  nodeSelector: { kubernetes.io/os: linux }
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 256Mi
+audit:
+  hostNetwork: false
+  priorityClassName: system-cluster-critical
+  affinity: {}
+  tolerations: []
+  nodeSelector: { kubernetes.io/os: linux }
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 512Mi
+    requests:
+      cpu: 100m
+      memory: 256Mi
+pdb:
+  controllerManager:
+    minAvailable: 1
+service: {}
+disabledBuiltins:

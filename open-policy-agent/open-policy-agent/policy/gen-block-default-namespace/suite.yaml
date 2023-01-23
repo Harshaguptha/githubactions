@@ -1,0 +1,49 @@
+kind: Suite
+apiVersion: test.gatekeeper.sh/v1alpha1
+metadata:
+  name: block-default-namespace
+tests:
+- name: block-endpoint-default-role
+  template: template.yaml
+  constraint: constraint.yaml
+  cases:
+  - name: example-allowed
+    object: samples/block-default-namespace/example_allowed.yaml
+    assertions:
+    - violations: no
+  - name: example-disallowed
+    object: samples/block-default-namespace/example_disallowed.yaml
+    assertions:
+    - violations: yes
+  - name: example-disallowed-deploy
+    object: samples/block-default-namespace/example_disallowed_deploy.yaml
+    assertions:
+    - violations: yes
+  - name: example-disallowed-secret
+    object: samples/block-default-namespace/example_disallowed_secret.yaml
+    assertions:
+    - violations: yes
+  - name: example-disallowed-akvs
+    object: samples/block-default-namespace/example_disallowed_akvs.yaml
+    assertions:
+    - violations: yes
+  - name: example-disallowed-pvc
+    object: samples/block-default-namespace/example_disallowed_pvc.yaml
+    assertions:
+    - violations: yes
+  - name: example-disallowed-statefulset
+    object: samples/block-default-namespace/example_disallowed_statefulset.yaml
+    assertions:
+    - violations: yes
+  - name: example-disallowed-job
+    object: samples/block-default-namespace/example_disallowed_job.yaml
+    assertions:
+    - violations: yes
+  - name: example-disallowed-cronjob
+    object: samples/block-default-namespace/example_disallowed_cronjob.yaml
+    assertions:
+    - violations: yes
+  - name: example-disallowed-cm
+    object: samples/block-default-namespace/example_disallowed_cm.yaml
+    assertions:
+    - violations: yes

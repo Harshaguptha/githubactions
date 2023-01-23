@@ -1,0 +1,96 @@
+apiVersion: templates.gatekeeper.sh/v1beta1
+kind: ConstraintTemplate
+metadata:
+  name: k8srequiredprobes
+  annotations:
+    description: Requires Pods to have readiness and/or liveness probes.
+spec:
+  crd:
+    spec:
+      names:
+        kind: K8sRequiredProbes
+      validation:
+        openAPIV3Schema:
+          type: object
+          properties:
+            exemptImages:
+              description: >-
+                Any container that uses an image that matches an entry in this list will be excluded
+                from enforcement. Prefix-matching can be signified with `*`. For example: `my-image-*`.
+                It is recommended that users use the fully-qualified Docker image name (e.g. start with a domain name)
+                in order to avoid unexpectedly exempting images from an untrusted repository.
+              type: array
+              items:
+                type: string
+            probes:
+              type: array
+              items:
+                type: string
+            probeTypes:
+              type: array
+              items:
+                type: string
+  targets:
+    - target: admission.k8s.gatekeeper.sh
+      rego: |
+        package k8srequiredprobes
+
+        import data.lib.exempt_container.is_exempt
+
+        probe_type_set = probe_types {
+          probe_types := {type | type := input.parameters.probeTypes[_]}
+        }
+
+        violation[{"msg": msg}] {
+          container := input.review.object.spec.containers[_]
+          not is_exempt(container)
+          probe := input.parameters.probes[_]
+          probe_is_missing(container, probe)
+          msg := get_violation_message(container, input.review, probe)
+        }
+
+        # ABS Custom for Deployment
+        violation[{"msg": msg}] {
+          container := input.review.object.spec.template.spec.containers[_]
+          not is_exempt(container)
+          probe := input.parameters.probes[_]
+          probe_is_missing(container, probe)
+          msg := get_violation_message(container, input.review, probe)
+        }
+
+        probe_is_missing(ctr, probe) = true {
+          not ctr[probe]
+        }
+
+        probe_is_missing(ctr, probe) = true {
+          probe_field_empty(ctr, probe)
+        }
+
+        probe_field_empty(ctr, probe) = true {
+          probe_fields := {field | ctr[probe][field]}
+          diff_fields := probe_type_set - probe_fields
+          count(diff_fields) == count(probe_type_set)
+        }
+
+        get_violation_message(container, review, probe) = msg {
+          msg := sprintf("Container <%v> in your <%v> <%v> has no <%v>", [container.name, review.kind.kind, review.object.metadata.name, probe])
+        }
+
+      libs:
+        - |
+          package lib.exempt_container
+          is_exempt(container) {
+              exempt_images := object.get(object.get(input, "parameters", {}), "exemptImages", [])
+              img := container.image
+              exemption := exempt_images[_]
+              _matches_exemption(img, exemption)
+          }
+          _matches_exemption(img, exemption) {
+              not endswith(exemption, "*")
+              exemption == img
+          }
+          _matches_exemption(img, exemption) {
+              endswith(exemption, "*")
+              prefix := trim_suffix(exemption, "*")
+              startswith(img, prefix)
+          }

@@ -1,0 +1,23 @@
+apiVersion: constraints.gatekeeper.sh/v1beta1
+kind: K8sUniqueIngressHost
+metadata:
+  name: unique-ingress-host
+spec:
+  enforcementAction: deny
+  match:
+    excludedNamespaces:
+    - esobf-dev
+    - esobf-perf1
+    - esoba-dev
+    - esoba-perf1
+    - kubecost
+    - istio-system
+    kinds:
+      - apiGroups: ["extensions", "networking.istio.io"]
+        kinds: ["Gateway"]
+  parameters:
+    #message: "All Ingress Gateway host should be unique"
+    labels:
+      - key: hosts
+        allowedRegex: '^[A-Za-z0-9-_]+.[a-z0-9]+.(westus|eastus).aks.az.albertsons.com$'     
+        #"<app-code>.<env>.<region>.aks.az.albertsons.com"

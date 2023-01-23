@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx-disallowed
+spec:
+  initContainers:
+  - name: opa
+    image: escoacrprod01.azurecr.io/esco/appdynamics/cluster-agent-operator:0.6.11
+    resources:
+      limits:
+        cpu: "100m"
+        memory: "30Mi"
+  containers:
+    - name: opa-init
+      image: escoacrprod01.azurecr.io/esco/appdynamics/cluster-agent-operator:0.6.11
+      resources:
+        limits:
+          cpu: "100m"
+          memory: "30Mi"

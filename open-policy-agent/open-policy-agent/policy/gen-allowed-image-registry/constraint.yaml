@@ -1,0 +1,44 @@
+apiVersion: constraints.gatekeeper.sh/v1beta1
+kind: K8sAllowedRepos
+metadata:
+  name: image-repos-to-be-acr
+spec:
+  enforcementAction: deny
+  match:
+    excludedNamespaces:
+    - kured
+    - tigera-operator
+    - espr-prometheus-nonprod
+    - kube-system
+    - gatekeeper-system
+    - istio-system
+    - akv2k8s
+    - twistlock
+    - kubecost
+    - calico-system
+    - default
+    kinds:
+      - apiGroups: [""]
+        kinds: ["Pod"]
+  parameters:
+    repos:
+      - "escoacrprod01.azurecr.io/"
+      
+---
+
+apiVersion: constraints.gatekeeper.sh/v1beta1
+kind: K8sAllowedRepos
+metadata:
+  name: image-repos-to-be-acr-espr
+spec:
+  enforcementAction: dryrun
+  match:
+    namespaces:
+    - espr-prometheus-nonprod
+    kinds:
+      - apiGroups: [""]
+        kinds: ["Pod"]
+  parameters:
+    repos:
+      - "escoacrprod01.azurecr.io/"
+

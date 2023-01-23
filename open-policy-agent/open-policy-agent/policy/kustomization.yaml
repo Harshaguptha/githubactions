@@ -1,0 +1,13 @@
+resources:
+  - gen-allowed-image-registry
+  - gen-block-default-namespace
+  - gen-container-limits
+  - gen-replica-limits
+  - gen-required-labels
+  - gen-required-probes
+  - gen-unique-ingress-host
+  - psp-block-node-port
+  - psp-host-namespace
+  - psp-pods-allowed-user-ranges
+  - psp-privileged-containers
+  - psp-volume-types

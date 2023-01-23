@@ -1,0 +1,34 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: allowed-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+      - name: nginx
+        image: escoacrprod01.azurecr.io/ubuntu/nginx:1.19.3
+        ports:
+        - containerPort: 80
+        resources:
+          limits:
+            memory: "1Gi"
+            cpu: "100m"
+        livenessProbe:
+          tcpSocket:
+            port: 80
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 80
+          periodSeconds: 3
+          timeoutSeconds: 1

@@ -1,0 +1,17 @@
+kind: Suite
+apiVersion: test.gatekeeper.sh/v1alpha1
+metadata:
+  name: requiredlabels
+tests:
+- name: deployment-required-labels
+  template: template.yaml
+  constraint: constraint.yaml
+  cases:
+  - name: allowed-deployment
+    object: samples/deployments-must-have-labels/allowed-deployment.yaml
+    assertions:
+    - violations: no
+  - name: disallowed-deployment
+    object: samples/deployments-must-have-labels/disallowed-deployment.yaml
+    assertions:
+    - violations: yes

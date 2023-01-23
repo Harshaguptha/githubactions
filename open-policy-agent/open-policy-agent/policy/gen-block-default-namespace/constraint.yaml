@@ -1,0 +1,35 @@
+apiVersion: constraints.gatekeeper.sh/v1beta1
+kind: K8sBlockDefaultNamespace
+metadata:
+  name: block-default-namespace
+spec:
+  enforcementAction: deny
+  match:
+    excludedNamespaces:
+    - kube-system
+    - gatekeeper-system
+    - istio-system
+    - akv2k8s
+    - twistlock
+    - kubecost
+    - calico-system
+    kinds:
+    - apiGroups:
+      - apps
+      - ""
+      - spv.no
+      - batch
+      kinds:
+      - Pod
+      - ConfigMap
+      - ServiceAccount
+      - Service
+      - Job
+      - Secret
+      - CronJob
+      - PersistentVolumeClaim
+      - Deployment
+      - StatefulSet
+      - AzureKeyVaultSecret
+    namespaces:
+    - default

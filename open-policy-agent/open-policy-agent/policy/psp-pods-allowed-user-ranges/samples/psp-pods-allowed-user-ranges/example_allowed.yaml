@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx-users-allowed
+  labels:
+    app: nginx-users
+spec:
+  securityContext:
+    supplementalGroups:
+      - 1999
+    fsGroup: 1999
+  containers:
+    - name: nginx
+      image: nginx
+      securityContext:
+        runAsUser: 1999
+        runAsGroup: 1999

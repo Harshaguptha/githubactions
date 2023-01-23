@@ -1,0 +1,67 @@
+apiVersion: templates.gatekeeper.sh/v1beta1
+kind: ConstraintTemplate
+metadata:
+  name: k8suniqueingresshost
+  annotations:
+    description: Requires all Ingress hosts to be unique.
+spec:
+  crd:
+    spec:
+      names:
+        kind: K8sUniqueIngressHost
+      validation:
+        # Schema for the `parameters` field
+        openAPIV3Schema:
+          type: object
+          properties:
+            message:
+              type: string
+            labels:
+              type: array
+              items:
+                type: object
+                properties:
+                  key:
+                    type: string
+                  allowedRegex:
+                    type: string
+  targets:
+    - target: admission.k8s.gatekeeper.sh
+      rego: |
+        package k8suniqueingresshost
+
+        violation[{"msg": msg}] {
+          port_number := input.review.object.spec.servers[_].port.number
+          not match_ports(port_number)
+          msg := sprintf("Ingress gateway port not allowed %v", [port_number])
+        }
+
+        match_ports(port_number) {
+          port_number == 443
+        }
+
+        match_ports(port_number) {
+          port_number == 80
+        }
+
+        violation[{"msg": msg}] {
+          host := input.review.spec.servers[_].hosts
+          other := data.inventory.namespace[namespace][_]["Gateway"][name]
+          not identical(other, input.review)
+          other.spec.servers.hosts[_] == host
+          msg := sprintf("Ingress gateway host conflicts with an existing ingress <%v>", [host])
+        }
+
+        identical(obj, review) {
+          obj.metadata.namespace == review.object.metadata.namespace
+          obj.metadata.name == review.object.metadata.name
+        }
+
+        violation[{"msg": msg}] {
+          value := input.review.object.spec.servers[_].hosts[_]
+          expected := input.parameters.labels[_]
+          # do not match if allowedRegex is not defined, or is an empty string
+          expected.allowedRegex != ""
+          not re_match(expected.allowedRegex, value)
+          msg := sprintf("Ingress gateway host <%v: %v> does not satisfy allowed regex: %v", [ value, expected.allowedRegex])
+        }

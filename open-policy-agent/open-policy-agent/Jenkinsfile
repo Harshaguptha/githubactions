@@ -1,0 +1,147 @@
+
+pipeline {
+
+    options {
+        ansiColor('xterm')
+    }
+
+    agent {
+      label 'platform-ff'
+    }
+
+    parameters {
+        string(name: 'tf_resource_json', description: 'enter variables json')
+    }
+
+    environment {
+        ESCO_CLOUD_SECRETS = ""
+        ESCO_TF_BACKEND = ""
+        GOOGLE_APPLICATION_CREDENTIALS = ""
+
+        // The APPROVERS variable is used to determine who can approve the deployment
+        //APPROVERS   = "marra05@safeway.com,tyeli00@safeway.com,vkuma23@safeway.com,sd00003-ba@safeway.com,no00000-ba@safeway.com,hponn01@safeway.com,hponn01-ba@safeway.com,rkass13-ba@safeway.com"
+
+        // Terraform local working directory
+        COMPONENT_NAME = "open-policy-agent"
+        TERRAFORM_DIRECTORY = "${WORKSPACE}/infrastructure/shared/${COMPONENT_NAME}"
+        //GOOGLE_APPLICATION_CREDENTIALS="secrets.auto.tfvars.json"
+    }
+    stages {
+        stage('aks tf init') {
+            steps {
+                script {
+                    def jsonObj         = readJSON text: "$tf_resource_json"
+                    def cloud_indicator = jsonObj.cloud_indicator
+                    def environment     = jsonObj.environment
+                    def cluster_name    = jsonObj.cluster_name
+                    def region_name     = jsonObj.region_name.replaceAll("\\s","").toLowerCase()
+
+                    if (environment != 'prod') {
+                        ENV="nonprod"
+                    } else {
+                        ENV="prod"
+                    }
+
+                    // read approvers from approvers.yaml
+                    // The APPROVERS env var is used to determine who can override the destroy action protection
+                    def input_info = readYaml file: "infrastructure/aks/config/approvers.yaml"
+                    def approver_list = input_info.approver.environment."${environment}"
+                    env.APPROVERS = approver_list.join(',').trim()              
+
+                    //If not set use cluster name to define
+                    if(cloud_indicator == "gke"){
+                        ESCO_CLOUD_SECRETS = "esco-gcp-secrets_json"
+                        ESCO_TF_BACKEND = "gk-backend-${ENV}"
+                        GOOGLE_APPLICATION_CREDENTIALS = "secrets.auto.tfvars.json"
+
+                        withCredentials([string(credentialsId: "${ESCO_CLOUD_SECRETS}", variable: 'tf_secrets_json')]) {
+                            def jsonBackendObj  = readJSON text: "$tf_backend_json"
+                            def gke_secrets_value = jsonBackendObj.gke_secrets_value
+
+                            writeFile file: "${TERRAFORM_DIRECTORY}/gke_secrets_file.json", text: "$gke_secrets_value"
+                            writeFile file: "${TERRAFORM_DIRECTORY}/secrets.auto.tfvars.json", text: "$tf_secrets_json"
+                        }
+                    }
+                    else{
+                        cloud_indicator = "aks"
+                        ESCO_CLOUD_SECRETS = "esco-az-${ENV}-sp"
+                        ESCO_TF_BACKEND = "az-backend-${ENV}"
+
+                        withCredentials([string(credentialsId: "ad-rbac-${ENV}", variable: 'tf_adsecrets_json')]) {
+                          writeFile file: "${TERRAFORM_DIRECTORY}/adsecrets.auto.tfvars.json", text: "$tf_adsecrets_json"
+                        }
+
+                        withCredentials([string(credentialsId: "${ESCO_CLOUD_SECRETS}", variable: 'tf_secrets_json')]) {
+                          writeFile file: "${TERRAFORM_DIRECTORY}/secrets.auto.tfvars.json", text: "$tf_secrets_json"
+                        }
+                    }
+
+                    withCredentials([string(credentialsId: "${ESCO_TF_BACKEND}", variable: 'tf_backend_json')]) {
+                      writeFile file: "${TERRAFORM_DIRECTORY}/backend.json", text: "$tf_backend_json"
+                    }
+
+                    withCredentials([usernamePassword(credentialsId: 'ghe-prod', passwordVariable: 'password', usernameVariable: 'username')]) {
+                       GITHUB_TOKEN="${password}"
+                    }
+
+                    writeFile file: "${TERRAFORM_DIRECTORY}/variables.auto.tfvars.json", text: "$tf_resource_json"
+
+                    currentBuild.displayName = "${BUILD_NUMBER}:${environment}-${cluster_name}"
+
+                    // Terraform remote state key
+                    TERRAFORM_STATE_KEY = "${region_name}/${environment}/${cloud_indicator}/${cluster_name}/${COMPONENT_NAME}/terraform.tfstate"
+                }
+
+                dir ("${TERRAFORM_DIRECTORY}") {
+                    withEnv(["HOME=${TERRAFORM_DIRECTORY}"]) {
+                      sh """
+                          git config --global url."https://$GITHUB_TOKEN@github.albertsons.com".insteadOf https://github.albertsons.com
+                          #terraform init -input=false -backend-config=prefix=${TERRAFORM_STATE_KEY}
+                          terraform init -input=false -backend-config="backend.json" -backend-config=key=${TERRAFORM_STATE_KEY}
+                      """
+                    }
+                }
+            }
+        }
+
+        stage('aks tf plan') {
+            steps {
+               dir ("${TERRAFORM_DIRECTORY}") {
+                    sh """
+                      terraform plan -input=false
+                    """
+                }
+            }
+        }
+
+        stage('aks tf apply') {
+            steps {
+                dir ("${TERRAFORM_DIRECTORY}") {
+                   withEnv(["HOME=${TERRAFORM_DIRECTORY}/${BUILD_NUMBER}"]) {
+                    script {
+                        timeout(time: 15, unit: 'MINUTES'){
+                          input(message: "\nWARNING! At this time you have checked the plan and Is this what you intend to do?", submitter: "${APPROVERS}")
+                        }
+                        sh """
+                          terraform apply -auto-approve
+                        """
+                    }
+                  }
+                }
+            }
+        }
+    }
+    // Post describes the steps to take when the pipeline finishes
+    post {
+        //changed {}
+        //aborted {}
+        //failure {}
+        //success {}
+        //unstable {}
+        //notBuilt {}
+        always {
+            echo "Clearing workspace"
+            deleteDir() // Clean up the local workspace so we don't leave behind a mess, or sensitive files
+        }
+    }
+}

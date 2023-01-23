@@ -1,0 +1,30 @@
+apiVersion: constraints.gatekeeper.sh/v1beta1
+kind: K8sReplicaLimits
+metadata:
+  name: replica-limits
+spec:
+  enforcementAction: deny
+  match:
+    excludedNamespaces:
+    - aamp-perf1 
+    - aais-perf1
+    - esobf-perf1
+    - esoba-perf1
+    - kube-system
+    - gatekeeper-system
+    - istio-system
+    - akv2k8s
+    - twistlock
+    - kubecost
+    - calico-system
+    - default
+    - kured
+    - ospg-dev
+    - ospg-qa1
+    kinds:
+      - apiGroups: ["apps"]
+        kinds: ["Deployment"]
+  parameters:
+    ranges:
+    - min_replicas: 1
+      max_replicas: 10

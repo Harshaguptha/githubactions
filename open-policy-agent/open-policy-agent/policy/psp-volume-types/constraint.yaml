@@ -1,0 +1,38 @@
+apiVersion: constraints.gatekeeper.sh/v1beta1
+kind: K8sPSPVolumeTypes
+metadata:
+  name: psp-volume-types
+spec:
+  enforcementAction: deny
+  match:
+    excludedNamespaces:
+    - kube-system
+    - gatekeeper-system
+    - istio-system
+    - akv2k8s
+    - twistlock
+    - kubecost
+    - calico-system
+    - tigera-operator
+    - tigera-operator
+    - espr-prometheus-nonprod
+    - sdog-dev
+    - sdog-qa1
+    - esgf-loki-nonprod
+    - default
+    kinds:
+      - apiGroups: [""]
+        kinds: ["Pod"]
+  parameters:
+    volumes:
+    # - "*" # * may be used to allow all volume types
+    - configMap
+    - emptyDir
+    - secret
+    - persistentVolumeClaim
+    - downwardAPI
+    - projected
+    - azureFile
+    #- nfs
+    #- hostPath #required for allowedHostPaths
+    #- flexVolume #required for allowedFlexVolumes

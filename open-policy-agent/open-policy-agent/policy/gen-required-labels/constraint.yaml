@@ -1,0 +1,75 @@
+apiVersion: constraints.gatekeeper.sh/v1beta1
+kind: K8sRequiredLabels
+metadata:
+  name: deployment-must-have-labels
+spec:
+  enforcementAction: deny
+  match:
+    excludedNamespaces:
+    - tigera-operator
+    - espr-prometheus-nonprod
+    - kube-system
+    - gatekeeper-system
+    - istio-system
+    - akv2k8s
+    - twistlock
+    - kubecost
+    - calico-system
+    - default
+    kinds:
+      - apiGroups: ["*"]
+        kinds: ["Deployment"]
+  parameters:
+    #message: "All deployments must have an label that points to your app code"
+    labels:
+      - key: app
+        allowedRegex: "^([A-Za-z0-9._%+-]+)$"
+      - key: costcenter
+        allowedRegex: "^([0-9-]+)$"
+      - key: project
+        allowedRegex: "^([A-Za-z0-9-]+)$"
+      - key: portfolio
+        allowedRegex: "^([A-Za-z0-9_ -]*)$"
+      - key: drcategory
+        allowedRegex: "^([A-Za-z0-9]{3})$"
+      - key: appcode
+        allowedRegex: "^([A-Za-z0-9]+)$"
+      - key: environment
+        allowedRegex: "^([A-Za-z0-9]+)$"
+    exemptImages:
+    - escoacrprod01.azurecr.io/esgh/summerwind/actions-runner-controller:*
+    - scoacrprod01.azurecr.io/esgh/summerwind/actions-runner:*
+    - escoacrprod01.azurecr.io/esgh/rajpalle/actions-runner:*
+    - escoacrprod01.azurecr.io/essp/k8s-decoder:git-k8s
+
+---
+
+apiVersion: constraints.gatekeeper.sh/v1beta1
+kind: K8sRequiredLabels
+metadata:
+  name: deployment-must-have-labels-espr
+spec:
+  enforcementAction: dryrun
+  match:
+    namespaces:
+    - espr-prometheus-nonprod
+    kinds:
+      - apiGroups: ["*"]
+        kinds: ["Deployment"]
+  parameters:
+    #message: "All deployments must have an label that points to your app code"
+    labels:
+      - key: app
+        allowedRegex: "^([A-Za-z0-9._%+-]*)$"
+      - key: costcenter
+        allowedRegex: "^([0-9]{4}[-][0-9]{3})$"
+      - key: project
+        allowedRegex: "^([A-Za-z0-9]{4})$"
+      - key: portfolio
+        allowedRegex: "^([A-Za-z0-9_-]*)$"
+      - key: drcategory
+        allowedRegex: "^([A-Za-z0-9]{3})$"
+      - key: appcode
+        allowedRegex: "^([A-Za-z0-9]{4})$"
+      - key: environment
+        allowedRegex: "^([A-Za-z0-9]{2,5})$"
