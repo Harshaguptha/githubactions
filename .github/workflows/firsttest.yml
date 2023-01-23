@@ -10,8 +10,13 @@ jobs:
         run: echo "Hello World!"
       - name: Print goodbye
         run: echo "Done - bye!"
-      - name: workspace
+      - name: Setting up gator
         run: |
           echo "${{github.workspace}}"
           wget https://github.com/open-policy-agent/gatekeeper/releases/download/v3.7.0/gator-v3.7.0-linux-amd64.tar.gz
           tar -xvf gator-v3.7.0-linux-amd64.tar.gz
+      - name: gen-container-limits 
+        #with:
+         # path: ${{github.workspace}}/infrastructure/shared/open-policy-agent/policy//gen-replica-limits/suite.yaml
+        run: |
+          ./gator test ${{github.workspace}}/infrastructure/shared/open-policy-agent/policy//gen-replica-limits/suite.yaml
