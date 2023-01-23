@@ -6,7 +6,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: minchao/setup-gator@v1
+      #- uses: minchao/setup-gator@v1
       - name: Print greeting
         run: echo "Hello World!"
       - name: Print goodbye
@@ -20,4 +20,4 @@ jobs:
         #with:
          # path: ${{github.workspace}}/infrastructure/shared/open-policy-agent/policy//gen-replica-limits/suite.yaml
         run: |
-          gator test ${{github.workspace}}/infrastructure/shared/open-policy-agent/policy//gen-replica-limits/suite.yaml
+          gator test ${{github.workspace}}/open-policy-agent/open-policy-agent/policy/gen-replica-limits/suite.yaml
