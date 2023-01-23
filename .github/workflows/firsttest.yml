@@ -19,4 +19,4 @@ jobs:
         #with:
          # path: ${{github.workspace}}/infrastructure/shared/open-policy-agent/policy//gen-replica-limits/suite.yaml
         run: |
-          ./gator test ${{github.workspace}}/infrastructure/shared/open-policy-agent/policy//gen-replica-limits/suite.yaml
+          gator test ${{github.workspace}}/infrastructure/shared/open-policy-agent/policy//gen-replica-limits/suite.yaml
